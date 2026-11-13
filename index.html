@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>はっちゃんの神経すいじゃく｜無料の脳トレゲーム</title>
+<meta name="description" content="同じ絵を2枚そろえる、やさしい脳トレゲーム。ぬいぐるみ猫のはっちゃんが応援します。登録なし・無料、スマホで遊べます。">
+<style>
+  :root { --ink:#2b2b33; --bg:#fdf6ec; --accent:#e8743b; --card:#5b7fbf; --line:#eadcc8; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif; line-height:1.6; }
+  .wrap { max-width:560px; margin:0 auto; padding:14px 14px 30px; }
+  h1 { text-align:center; font-size:clamp(1.25rem, 5.6vw, 1.7rem); margin:8px 44px 4px; letter-spacing:.02em; }
+  h1 small { display:block; font-size:.95rem; font-weight:500; color:#7a6a58; }
+
+  .hacchan { display:flex; align-items:flex-end; gap:8px; margin:6px 0 10px; }
+  .hacchan svg { width:92px; height:92px; flex:none; transition:transform .25s; }
+  .hacchan.happy svg { transform:translateY(-8px) rotate(-6deg); }
+  .hacchan.sad svg { transform:rotate(6deg); }
+  .bubble { position:relative; background:#fff; border:2px solid var(--ink); border-radius:16px; padding:10px 14px; font-size:1.15rem; font-weight:700; min-height:3.2em; flex:1; }
+  .bubble::before { content:""; position:absolute; left:-12px; bottom:16px; border:8px solid transparent; border-right-color:var(--ink); }
+  .bubble::after { content:""; position:absolute; left:-8px; bottom:17px; border:7px solid transparent; border-right-color:#fff; }
+
+  .panel { background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .levels { display:grid; gap:10px; }
+  .levels button { font-family:inherit; font-size:1.25rem; font-weight:700; padding:16px; border-radius:14px; border:2px solid var(--ink); background:#fff; color:var(--ink); cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+  .levels button span { font-size:.95rem; font-weight:500; color:#7a6a58; }
+  .levels button:active { transform:scale(.98); }
+  .best { text-align:center; font-size:.95rem; color:#7a6a58; margin:10px 0 0; }
+
+  .stats { display:flex; justify-content:space-between; font-size:1.1rem; font-weight:700; margin:0 2px 8px; }
+  .grid { display:grid; gap:8px; }
+  .card { aspect-ratio:3/4; perspective:600px; cursor:pointer; }
+  .inner { position:relative; width:100%; height:100%; transition:transform .35s; transform-style:preserve-3d; }
+  .card.open .inner, .card.done .inner { transform:rotateY(180deg); }
+  .face { position:absolute; inset:0; border-radius:12px; backface-visibility:hidden; -webkit-backface-visibility:hidden; display:flex; align-items:center; justify-content:center; }
+  .back { background:var(--card); border:3px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.18); background-image:radial-gradient(circle at 30% 30%, rgba(255,255,255,.25) 0 12%, transparent 13%), radial-gradient(circle at 70% 70%, rgba(255,255,255,.25) 0 12%, transparent 13%); background-size:40px 40px; }
+  .back b { color:#fff; font-size:1.6rem; opacity:.9; }
+  .front { background:#fff; border:3px solid var(--line); transform:rotateY(180deg); font-size:clamp(2rem, 9vw, 3.2rem); }
+  .card.done .front { border-color:#7cc47f; background:#f1fbf1; }
+  .card.done { animation:pop .4s; }
+  @keyframes pop { 50% { transform:scale(1.08); } }
+
+  .row { display:flex; gap:8px; margin-top:12px; }
+  .row button, .big { flex:1; font-family:inherit; font-size:1.05rem; font-weight:700; padding:12px; border-radius:999px; border:none; cursor:pointer; }
+  .ghost { background:#fff; border:2px solid var(--ink) !important; color:var(--ink); }
+  .big { width:100%; background:var(--accent); color:#fff; font-size:1.2rem; padding:15px; margin-top:10px; }
+
+  .result { text-align:center; }
+  .result .rank { font-size:1.9rem; font-weight:900; color:var(--accent); margin:6px 0; }
+  .result table { margin:8px auto; font-size:1.1rem; border-collapse:collapse; }
+  .result td { padding:4px 10px; }
+  .result td:first-child { color:#7a6a58; }
+  .confetti { position:fixed; top:-20px; font-size:24px; pointer-events:none; animation:fall linear forwards; z-index:9; }
+  @keyframes fall { to { transform:translateY(110vh) rotate(540deg); } }
+
+  .sound { position:fixed; top:10px; right:10px; font-size:1.3rem; background:#fff; border:1px solid var(--line); border-radius:999px; width:44px; height:44px; cursor:pointer; }
+  .promo { margin-top:22px; background:#fff; border:2px solid var(--accent); border-radius:16px; padding:16px 18px; text-align:center; }
+  .promo h2 { margin:0 0 6px; font-size:1.1rem; }
+  .promo p { margin:4px 0; font-size:.95rem; }
+  .promo a { display:inline-block; margin-top:8px; color:#fff; background:var(--ink); padding:10px 22px; border-radius:999px; text-decoration:none; }
+  footer { text-align:center; font-size:.8rem; color:#9a8a78; margin-top:16px; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<button class="sound" id="soundBtn" aria-label="音のオン・オフ">🔊</button>
+<div class="wrap">
+  <h1>はっちゃんの神経すいじゃく<small>同じ絵を2枚そろえる脳トレゲーム</small></h1>
+
+  <div class="hacchan" id="hacchan">
+    <svg viewBox="0 0 120 120" aria-label="ぬいぐるみ猫のはっちゃん">
+      <!-- 耳 -->
+      <path d="M22 42 L30 10 L52 32 Z" fill="#222"/>
+      <path d="M98 42 L90 10 L68 32 Z" fill="#222"/>
+      <path d="M29 34 L33 19 L44 31 Z" fill="#f4b6c2"/>
+      <path d="M91 34 L87 19 L76 31 Z" fill="#f4b6c2"/>
+      <!-- 顔（ハチワレ） -->
+      <ellipse cx="60" cy="66" rx="46" ry="42" fill="#fff" stroke="#222" stroke-width="3"/>
+      <path d="M16 62 C18 34 40 24 60 24 C80 24 102 34 104 62 C92 52 76 46 66 60 L60 70 L54 60 C44 46 28 52 16 62 Z" fill="#222"/>
+      <!-- 目 -->
+      <g id="eyes">
+        <ellipse cx="42" cy="70" rx="6" ry="7" fill="#222"/>
+        <ellipse cx="78" cy="70" rx="6" ry="7" fill="#222"/>
+        <circle cx="44" cy="67" r="2" fill="#fff"/>
+        <circle cx="80" cy="67" r="2" fill="#fff"/>
+      </g>
+      <!-- 鼻・口 -->
+      <path d="M56 80 L64 80 L60 85 Z" fill="#f08aa0"/>
+      <path id="mouth" d="M52 89 Q56 94 60 89 Q64 94 68 89" fill="none" stroke="#222" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- ほっぺ -->
+      <ellipse cx="32" cy="84" rx="7" ry="4" fill="#f9c5cf" opacity=".8"/>
+      <ellipse cx="88" cy="84" rx="7" ry="4" fill="#f9c5cf" opacity=".8"/>
+      <!-- ひげ -->
+      <g stroke="#555" stroke-width="1.6" stroke-linecap="round">
+        <line x1="22" y1="78" x2="6" y2="74"/><line x1="22" y1="83" x2="6" y2="85"/>
+        <line x1="98" y1="78" x2="114" y2="74"/><line x1="98" y1="83" x2="114" y2="85"/>
+      </g>
+    </svg>
+    <div class="bubble" id="bubble">よう来たな！ワシ、はっちゃんや。いっちょ脳トレしよか！</div>
+  </div>
+
+  <!-- メニュー -->
+  <section class="panel" id="menu">
+    <div class="levels">
+      <button data-level="easy">かんたん <span>6組・12枚</span></button>
+      <button data-level="normal">ふつう <span>8組・16枚</span></button>
+      <button data-level="hard">むずかしい <span>10組・20枚</span></button>
+    </div>
+    <p class="best" id="bestText"></p>
+  </section>
+
+  <!-- ゲーム -->
+  <section id="game" hidden>
+    <div class="stats"><span>⏱ <span id="time">0</span>秒</span><span>めくった回数 <span id="moves">0</span></span><span>そろった <span id="pairs">0</span>/<span id="total">0</span></span></div>
+    <div class="grid" id="grid"></div>
+    <div class="row">
+      <button class="ghost" id="retry">最初から</button>
+      <button class="ghost" id="toMenu">レベルを選ぶ</button>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section class="panel result" id="result" hidden>
+    <div>はっちゃん判定</div>
+    <div class="rank" id="rank"></div>
+    <table>
+      <tr><td>レベル</td><td id="rLevel"></td></tr>
+      <tr><td>タイム</td><td id="rTime"></td></tr>
+      <tr><td>めくった回数</td><td id="rMoves"></td></tr>
+    </table>
+    <div id="newBest"></div>
+    <button class="big" id="again">もう一回あそぶ</button>
+    <div class="row">
+      <button class="ghost" id="share">人にすすめる</button>
+      <button class="ghost" id="toMenu2">レベルを選ぶ</button>
+    </div>
+  </section>
+
+  <section class="promo">
+    <h2>このゲームは、AIとおしゃべりして作りました</h2>
+    <p>作ったのは、60代のAI講師「みやん」です。プログラムは書いていません。</p>
+    <p>はっちゃんは、みやんの家にいるぬいぐるみの猫です。</p>
+    <a href="https://hibiki-no-ie.com/" target="_blank" rel="noopener">響の家のAI講座を見てみる</a>
+  </section>
+  <footer>© 合同会社響の家</footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const LEVELS = {
+  easy:   { name:'かんたん',   pairs:6,  cols:3 },
+  normal: { name:'ふつう',     pairs:8,  cols:4 },
+  hard:   { name:'むずかしい', pairs:10, cols:4 },
+};
+const PICS = ['🐟','🧶','🔔','🍙','🎸','🌸','🍵','🎏','🍡','🌻','🍎','🎈','⛩️','🍁'];
+
+const SAY = {
+  start: ['ほな、いくでぇ！','ゆっくりでええからな','まずは適当にめくってみ'],
+  match: ['ええやん！','お見事！','やるなぁ！','それや、それ！','さすがやわ'],
+  combo: ['連続や！冴えとるなぁ！','止まらへんがな！','今日、調子ええんちゃう？'],
+  miss:  ['おしいなぁ','どこにあったかな〜','ドンマイ、ドンマイ','覚えとこな'],
+  hint:  ['さっきめくったやつ、覚えとる？','あわてんでええよ','ワシも忘れてもうたわ'],
+  idle:  ['ほら、めくってみ','ワシ、待っとるで'],
+};
+const pick = a => a[Math.floor(Math.random()*a.length)];
+
+let state = null, timer = null, soundOn = true, actx = null;
+
+// ---------- 記録（この端末だけに保存） ----------
+function loadBest(){ try { return JSON.parse(localStorage.getItem('hacchanBest') || '{}'); } catch(e){ return {}; } }
+function saveBest(b){ try { localStorage.setItem('hacchanBest', JSON.stringify(b)); } catch(e){} }
+function showBest(){
+  const b = loadBest();
+  const parts = Object.keys(LEVELS).filter(k => b[k]).map(k => `${LEVELS[k].name} ${b[k].time}秒`);
+  $('#bestText').textContent = parts.length ? 'これまでの最高記録：' + parts.join('／') : '';
+}
+
+// ---------- はっちゃん ----------
+function say(text, mood){
+  $('#bubble').textContent = text;
+  const h = $('#hacchan');
+  h.classList.remove('happy','sad');
+  if (mood){ void h.offsetWidth; h.classList.add(mood); setTimeout(() => h.classList.remove(mood), 700); }
+  $('#mouth').setAttribute('d', mood === 'sad' ? 'M52 92 Q60 86 68 92' : 'M52 89 Q56 94 60 89 Q64 94 68 89');
+}
+
+// ---------- 音 ----------
+function tone(freqs, dur = 0.12, type = 'sine', vol = 0.18){
+  if (!soundOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    freqs.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + i*dur;
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t+0.01); g.gain.exponentialRampToValueAtTime(0.001, t+dur*1.6);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t+dur*1.7);
+    });
+  } catch(e){}
+}
+const sFlip  = () => tone([660], 0.06, 'triangle', 0.12);
+const sMatch = () => tone([784, 1047], 0.1, 'triangle');
+const sMiss  = () => tone([330, 262], 0.12, 'sine', 0.12);
+const sClear = () => tone([523, 659, 784, 1047, 1319], 0.12, 'triangle', 0.2);
+
+$('#soundBtn').onclick = () => { soundOn = !soundOn; $('#soundBtn').textContent = soundOn ? '🔊' : '🔇'; };
+
+// ---------- ゲーム ----------
+function shuffle(a){ for (let i = a.length-1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+
+function start(level){
+  const L = LEVELS[level];
+  const pics = shuffle(PICS.slice()).slice(0, L.pairs);
+  const deck = shuffle([...pics, ...pics]);
+  state = { level, deck, open:[], done:0, moves:0, combo:0, misses:0, lock:false, t0:null, seen:new Set() };
+  const grid = $('#grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${L.cols}, 1fr)`;
+  deck.forEach((p, i) => {
+    const c = document.createElement('div');
+    c.className = 'card'; c.dataset.i = i;
+    c.innerHTML = `<div class="inner"><div class="face back"><b>?</b></div><div class="face front">${p}</div></div>`;
+    c.onclick = () => flip(c);
+    grid.appendChild(c);
+  });
+  $('#time').textContent = 0; $('#moves').textContent = 0; $('#pairs').textContent = 0; $('#total').textContent = L.pairs;
+  clearInterval(timer);
+  show('game');
+  say(pick(SAY.start));
+}
+
+function flip(c){
+  if (state.lock || c.classList.contains('open') || c.classList.contains('done')) return;
+  if (!state.t0){ state.t0 = Date.now(); timer = setInterval(() => $('#time').textContent = Math.floor((Date.now()-state.t0)/1000), 250); }
+  sFlip();
+  c.classList.add('open');
+  state.open.push(c);
+  if (state.open.length < 2) return;
+
+  state.moves++; $('#moves').textContent = state.moves;
+  const [a, b] = state.open;
+  const same = state.deck[a.dataset.i] === state.deck[b.dataset.i];
+  if (same){
+    state.lock = true;
+    setTimeout(() => {
+      a.classList.add('done'); b.classList.add('done');
+      state.open = []; state.lock = false; state.done++; state.combo++;
+      $('#pairs').textContent = state.done;
+      sMatch();
+      if (state.done === LEVELS[state.level].pairs) return finish();
+      say(state.combo >= 2 ? pick(SAY.combo) : pick(SAY.match), 'happy');
+    }, 300);
+  } else {
+    state.lock = true; state.combo = 0; state.misses++;
+    // 一度見たカードをまた外したら、ヒント寄りの声かけ
+    const wasSeen = state.seen.has(a.dataset.i) || state.seen.has(b.dataset.i);
+    state.seen.add(a.dataset.i); state.seen.add(b.dataset.i);
+    setTimeout(() => {
+      a.classList.remove('open'); b.classList.remove('open');
+      state.open = []; state.lock = false;
+      sMiss();
+      say(wasSeen && state.misses % 2 === 0 ? pick(SAY.hint) : pick(SAY.miss), 'sad');
+    }, 900);
+  }
+}
+
+function finish(){
+  clearInterval(timer);
+  const sec = Math.max(1, Math.round((Date.now() - state.t0) / 1000));
+  const L = LEVELS[state.level];
+  const ratio = state.moves / L.pairs; // 1.0 が最少
+  let rank, comment;
+  if (ratio <= 1.4){ rank = '天才ねこ級 🏆'; comment = 'なんやこれ！ワシより賢いやん！'; }
+  else if (ratio <= 1.9){ rank = '名人級 🥇'; comment = 'ええ記憶力しとるわ。まいった！'; }
+  else if (ratio <= 2.6){ rank = '達人級 🥈'; comment = 'ようがんばった！次はもっといけるで'; }
+  else { rank = 'がんばり屋さん級 🌱'; comment = '最後までやりきったのが一番えらい！'; }
+  $('#rank').textContent = rank;
+  $('#rLevel').textContent = L.name;
+  $('#rTime').textContent = sec + '秒';
+  $('#rMoves').textContent = state.moves + '回';
+  const best = loadBest();
+  if (!best[state.level] || sec < best[state.level].time){
+    best[state.level] = { time: sec, moves: state.moves };
+    saveBest(best);
+    $('#newBest').textContent = '🎉 自己ベスト更新！';
+  } else {
+    $('#newBest').textContent = `自己ベスト：${best[state.level].time}秒`;
+  }
+  sClear();
+  confetti();
+  setTimeout(() => { show('result'); say(comment, 'happy'); }, 600);
+}
+
+function confetti(){
+  const items = ['🎉','✨','🐟','🌸','⭐'];
+  for (let i = 0; i < 26; i++){
+    const s = document.createElement('div');
+    s.className = 'confetti';
+    s.textContent = pick(items);
+    s.style.left = Math.random()*100 + 'vw';
+    s.style.animationDuration = (1.8 + Math.random()*1.6) + 's';
+    s.style.animationDelay = (Math.random()*0.5) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 4200);
+  }
+}
+
+function show(id){
+  ['menu','game','result'].forEach(k => $('#'+k).hidden = (k !== id));
+  if (id === 'menu') showBest();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('[data-level]').forEach(b => b.onclick = () => start(b.dataset.level));
+$('#retry').onclick = () => start(state.level);
+$('#again').onclick = () => start(state.level);
+$('#toMenu').onclick = () => { clearInterval(timer); show('menu'); say('どれにする？'); };
+$('#toMenu2').onclick = () => { show('menu'); say('次はどれにする？'); };
+$('#share').onclick = async () => {
+  const text = `はっちゃんの神経すいじゃくで「${$('#rank').textContent}」でした！無料で遊べる脳トレゲームです`;
+  const url = location.href.split('#')[0].split('?')[0];
+  if (navigator.share){ try { await navigator.share({ title:'はっちゃんの神経すいじゃく', text, url }); } catch(e){} }
+  else { try { await navigator.clipboard.writeText(text + '\n' + url); say('紹介文をコピーしといたで！LINEに貼ってな'); } catch(e){ say(url); } }
+};
+
+let idleTimer;
+document.addEventListener('click', () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { if (!$('#game').hidden && state && state.t0) say(pick(SAY.idle)); }, 20000); });
+
+show('menu');
+</script>
+</body>
+</html>
